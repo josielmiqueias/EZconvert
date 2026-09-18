@@ -33,7 +33,7 @@ class App(ctk.CTk):
         self.lbl_arquivo_imagem.pack(pady=5)
         self.opt_formato_img = ctk.CTkOptionMenu(
             self.tab_imagem,
-            values=["PNG", "JPG", "WEBP", "TIFF", "PDF", "BMP", "ICO"]
+            values=["PNG", "JPG", "WEBP", "TIFF", "PDF", "BMP", "ICO", "GIF"]
         )
         self.opt_formato_img.pack(pady=15)
 
@@ -50,7 +50,7 @@ class App(ctk.CTk):
         caminho = ctk.filedialog.askopenfilename(
             title="Selecione a imagem",
             filetypes=[
-                ("Arquivos de Imagem", ("*.png", "*.jpg", "*.jpeg", "*.webp", "*.tiff", "*.pdf", "*.bmp", "*.ico")),
+                ("Arquivos de Imagem", ("*.png", "*.jpg", "*.jpeg", "*.webp", "*.tiff", "*.pdf", "*.bmp", "*.ico", "*.gif")),
                 ("Todos os arquivos", "*.*")
                 ]
         )
@@ -61,6 +61,16 @@ class App(ctk.CTk):
         if not self.caminho_img_selecionada:
             print("Erro! Nenhum arquivo/ficheiro selecionado. . .")
             return
+        formato = self.opt_formato_img.get()
+        imagem_selecionada = self.caminho_img_selecionada
+        nome_imagem, extensao = os.path.splitext(imagem_selecionada)
+        imagem_nova = nome_imagem + '.' + formato.lower()
+        print("Convertendo imagem, aguarde..!")
+        converter_imagem(imagem_selecionada, imagem_nova)
+        print("Imagem convertida com sucesso!!")
+        
+
+
 
 if __name__ == "__main__":
     app = App()
