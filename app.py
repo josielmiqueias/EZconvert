@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import os
+import threading
 from conversores import converter_imagem, converter_midias, baixar_imagem, baixar_midias
 
 ctk.set_appearance_mode("System")
@@ -11,7 +12,7 @@ class App(ctk.CTk):
         self.title("EZconvert - Conversor de arquivos")
         self.geometry("650x450")
         self.resizable(False, False)
-        self.label_titulo = ctk.CTkLabel(self, text="EZconvert", font=("Arial", 24, "bold"))
+        self.label_titulo = ctk.CTkLabel(self, text="EZconvert", font=("Brainstorm", 116, "bold"))
         self.label_titulo.pack(pady=15)
         self.tabview = ctk.CTkTabview(self, width=600, height=350)
         self.tabview.pack(pady=10)
@@ -20,8 +21,16 @@ class App(ctk.CTk):
         self.tab_url_midia = self.tabview.add("URL Mídias")
         self.tab_url_imagem = self.tabview.add("URL Imagens")
         self.caminho_img_selecionada = None
+        self.caminho_midia_selecionada = None
 
         self.setup_tab_imagem()
+
+        self.setup_tab_midia()
+
+        #self.setup_tab_midiaURL()
+
+       #self.setup_tab_imagemURL()
+
     def setup_tab_imagem(self):
         self.btn_selecionar_imagem = ctk.CTkButton(
             self.tab_imagem,
@@ -103,11 +112,69 @@ class App(ctk.CTk):
         nome_imagem, extensao = os.path.splitext(imagem_selecionada)
         imagem_nova = nome_imagem + '.' + formato.lower()
         self.popup(mensagem="Convertendo imagem, aguarde..!", tempo_ms=3000)
-        converter_imagem(imagem_selecionada, imagem_nova)
-        self.popup(mensagem="Imagem convertida com sucesso!!", tempo_ms=3000 )
-        
+        def tarefa():
+            try:
+                converter_midias(imagem_selecionada, imagem_nova)
+                self.after(0, lambda: self.popup(mensagem="Imagem convertida com sucesso!!", tempo_ms=3000))
+            except Exception as e:
+                self.after(0, lambda: self.popup(mensagem=f"Erro na conversão: {e}", tempo_ms=3000, cor_fundo="darkred"))
+        threading.Thread(target=tarefa, daemon=True).start()
 
 
+    def setup_tab_midia(self):
+        self.btn_selecionar_midia = ctk.CTkButton(
+            self.tab_midia,
+            text="Selecionar mídia",
+            command=self.selecionar_midia
+            )
+        self.btn_selecionar_midia.pack(pady=15)
+        self.lbl_arquivo_midia = ctk.CTkLabel(self.tab_midia, text="Nenhum local selecionado")
+        self.lbl_arquivo_midia.pack(pady=5)
+        self.opt_formato_midia = ctk.CTkOptionMenu(
+            self.tab_midia,
+            values=["MP4", "MOV", "WEBM", "AVI", "ASF", "MKV", "WMV", "FLV", "MP3", "OGG", "WAV", "M4A", "FLAC", "AIFF"]
+            )
+        self.opt_formato_midia.pack(pady=15)
+    
+        self.btn_converter_midia = ctk.CTkButton(
+            self.tab_midia,
+            text="Converter mídias",
+            fg_color="green",
+            hover_color="darkgreen",
+            command=self.executar_conversao_midia
+            )
+        self.btn_converter_midia.pack(pady=15)
+    
+    def selecionar_midia(self):
+        caminho = ctk.filedialog.askopenfilename(
+            title="Selecione a mídia",
+            filetypes=[
+                ("Arquivos de mídia", ("*.mp4", "*.avi", "*.mp3", "*.webm", "*.flac", "*.wav", "*.ogg", "*.m4a", "*.mov", "*.aiff", "*.flac", "*.flv")),
+                ("Todos os arquivos", "*.*")
+            ]
+        )
+        if caminho:
+            self.caminho_midia_selecionada = caminho
+            self.lbl_arquivo_midia.configure(text=caminho)
+
+    def executar_conversao_midia(self):
+        if not self.caminho_midia_selecionada:
+            self.popup(mensagem="Erro! Nenhum arquivo / ficheiro selecionado...", tempo_ms=2500, cor_fundo="darkred")
+            return
+        formato = self.opt_formato_midia.get()
+        midia_selecionada = self.caminho_midia_selecionada
+        nome_midia, extensao = os.path.splitext(midia_selecionada)
+        midia_nova = nome_midia + '.' + formato.lower()
+        self.popup(mensagem="Convertendo mídia, aguarde..!", tempo_ms=3000)
+        def tarefa():
+            try:
+                converter_midias(midia_selecionada, midia_nova)
+                self.after(0, lambda: self.popup(mensagem="Mídia convertida com sucesso!!", tempo_ms=3000))
+            except Exception as e:
+                self.after(0, lambda: self.popup(mensagem=f"Erro na conversão: {e}", tempo_ms=3000, cor_fundo="darkred"))
+        threading.Thread(target=tarefa, daemon=True).start()    
+
+     
 
 if __name__ == "__main__":
     app = App()
