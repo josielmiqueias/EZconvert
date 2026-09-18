@@ -58,7 +58,7 @@ class App(ctk.CTk):
             self.caminho_img_selecionada = caminho
             self.lbl_arquivo_imagem.configure(text=caminho)
 
-    def popup(self, mensagem, tempo_ms=3000, cor_fundo="darkgrey"):
+    def popup(self, mensagem, tempo_ms=3000, cor_fundo="darkgrey", cor_texto="white"):
 
         if hasattr(self, "popup_ativo") and self.popup_ativo is not None:
             try:
@@ -69,7 +69,7 @@ class App(ctk.CTk):
         self.popup_ativo = ctk.CTkFrame(self, fg_color=cor_fundo, corner_radius=10)
         self.popup_ativo.place(relx=0.98, rely=0.95, anchor="se")
 
-        lbl = ctk.CTkLabel(self.popup_ativo, text=mensagem, font=("Arial", 13, "bold"), text_color="white")
+        lbl = ctk.CTkLabel(self.popup_ativo, text=mensagem, font=("Arial", 13, "bold"), text_color=cor_texto)
         lbl.pack(expand=True, fill="both", padx=15, pady=(10,5))
 
         barra = ctk.CTkProgressBar(self.popup_ativo, height=3, progress_color="white", mode="determinate")
@@ -96,7 +96,7 @@ class App(ctk.CTk):
 
     def executar_conversao_img(self):
         if not self.caminho_img_selecionada:
-            print("Erro! Nenhum arquivo/ficheiro selecionado. . .")
+            self.popup(mensagem="Erro! Nenhum arquivo / ficheiro selecionado...", tempo_ms=2500, cor_fundo="darkred")
             return
         formato = self.opt_formato_img.get()
         imagem_selecionada = self.caminho_img_selecionada
