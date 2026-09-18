@@ -19,6 +19,7 @@ class App(ctk.CTk):
         self.tab_midia = self.tabview.add("Mídias")
         self.tab_url_midia = self.tabview.add("URL Mídias")
         self.tab_url_imagem = self.tabview.add("URL Imagens")
+        self.caminho_img_selecionada = None
 
         self.setup_tab_imagem()
     def setup_tab_imagem(self):
