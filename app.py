@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import os
 import threading
+from urllib.parse import urlparse
 from conversores import converter_imagem, converter_midias, baixar_imagem, baixar_midias
 
 ctk.set_appearance_mode("System")
@@ -30,7 +31,7 @@ class App(ctk.CTk):
 
         self.setup_tab_midiaURL()
 
-       #self.setup_tab_imagemURL()
+        self.setup_tab_imagemURL()
 
     def setup_tab_imagem(self):
         self.btn_selecionar_imagem = ctk.CTkButton(
@@ -230,8 +231,76 @@ class App(ctk.CTk):
                 baixar_midias(url, caminho_saida, so_audio=somente_audio)
                 self.after(0, lambda: self.popup(mensagem="Mídia baixada com sucesso!!", tempo_ms=3000, cor_fundo="green"))
             except Exception as e:
-                self.after(0, lambda: self.popup(mensagem=f"Erro na conversão: {e}", tempo_ms=3000, cor_fundo="darkred"))
+                self.after(0, lambda: self.popup(mensagem=f"Erro ao baixar mídia: {e}", tempo_ms=3000, cor_fundo="darkred"))
         threading.Thread(target=tarefa, daemon=True).start()
+
+
+    def setup_tab_imagemURL(self):
+            self.entry_imagemURL = ctk.CTkEntry(
+                self.tab_imagemURL, 
+                placeholder_text="Insira o link da imagem",
+                width=400
+                )
+            self.entry_imagemURL.pack(pady=10)
+    
+            self.btn_escolher_local = ctk.CTkButton(
+                self.tab_imagemURL,
+                text="Selecionar local de salvamento",
+                command= self.escolher_local
+            )
+    
+            self.btn_escolher_local.pack(pady=15)
+            self.lbl_escolher_local = ctk.CTkLabel(self.tab_imagemURL, text="Nenhum local selecionado")
+            self.lbl_escolher_local.pack(pady=5)
+
+            self.opt_formato_imgURL = ctk.CTkOptionMenu(
+                self.tab_imagemURL,
+                values=["PNG", "JPG", "WEBP", "TIFF", "PDF", "BMP", "ICO", "GIF"]
+            )
+            self.opt_formato_imgURL.pack(pady=10)
+    
+            self.btn_baixar_imagem = ctk.CTkButton(
+            self.tab_imagemURL,
+            text="Baixar Imagem",
+            command=self.baixar_imagemURL
+            )
+    
+            self.btn_baixar_imagem.pack(pady=5)
+    
+    def escolher_local_img(self):
+            caminho = ctk.filedialog.askdirectory(
+                title="Selecione o local de salvamento"
+            )
+            if caminho:
+                self.caminho_salvamento = caminho
+                self.lbl_escolher_local.configure(text=caminho)
+    
+    
+    def baixar_imagemURL(self):
+            if not self.caminho_salvamento:
+                self.popup(mensagem="Erro! Nenhum local para salvamento selecionado...", tempo_ms=2500, cor_fundo="darkred")
+                return
+            caminho_saida = self.caminho_salvamento
+            url = self.entry_imagemURL.get()
+            nome_arquivo_extensao = os.path.basename(urlparse(url).path)
+            nome_arquivo, extensao_velha = os.path.splitext(nome_arquivo_extensao)
+            if not nome_arquivo:
+                nome_arquivo = "imagem_baixada"
+
+            extensao = self.opt_formato_img.get()
+    
+            nome_arquivo = nome_arquivo+"."+extensao.lower()
+            caminho_saida = caminho_saida+"/"+nome_arquivo
+            
+            self.popup(mensagem="Baixando imagem, aguarde..!", tempo_ms=3000)
+            def tarefa():
+                try:
+                    baixar_imagem(url, caminho_saida)
+                    self.after(0, lambda: self.popup(mensagem="Imagem baixada com sucesso!!", tempo_ms=3000, cor_fundo="green"))
+                except Exception as e:
+                    msg_erro = str(e)
+                    self.after(0, lambda: self.popup(mensagem=f"Erro ao baixar imagem: {e}", tempo_ms=3000, cor_fundo="darkred"))
+            threading.Thread(target=tarefa, daemon=True).start()
         
 
 
