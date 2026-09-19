@@ -18,16 +18,17 @@ class App(ctk.CTk):
         self.tabview.pack(pady=10)
         self.tab_imagem = self.tabview.add("Imagens")
         self.tab_midia = self.tabview.add("Mídias")
-        self.tab_url_midia = self.tabview.add("URL Mídias")
-        self.tab_url_imagem = self.tabview.add("URL Imagens")
+        self.tab_midiaURL = self.tabview.add("URL Mídias")
+        self.tab_imagemURL = self.tabview.add("URL Imagens")
         self.caminho_img_selecionada = None
         self.caminho_midia_selecionada = None
+        self.caminho_salvamento = None
 
         self.setup_tab_imagem()
 
         self.setup_tab_midia()
 
-        #self.setup_tab_midiaURL()
+        self.setup_tab_midiaURL()
 
        #self.setup_tab_imagemURL()
 
@@ -174,7 +175,65 @@ class App(ctk.CTk):
                 self.after(0, lambda: self.popup(mensagem=f"Erro na conversão: {e}", tempo_ms=3000, cor_fundo="darkred"))
         threading.Thread(target=tarefa, daemon=True).start()    
 
-     
+    def setup_tab_midiaURL(self):
+        self.entry_midiaURL = ctk.CTkEntry(
+            self.tab_midiaURL, 
+            placeholder_text="Insira o link da mídia",
+            width=400
+            )
+        self.entry_midiaURL.pack(pady=15)
+
+        self.btn_escolher_local = ctk.CTkButton(
+            self.tab_midiaURL,
+            text="Selecionar local de salvamento",
+            command= self.escolher_local
+        )
+
+
+        self.switch_somente_audio = ctk.CTkSwitch(
+            self.tab_midiaURL,
+            text="Baixar apenas áudio (.mp3)"
+        )
+        self.switch_somente_audio.pack(pady=5)
+
+        self.btn_escolher_local.pack(pady=10)
+        self.lbl_escolher_local = ctk.CTkLabel(self.tab_midiaURL, text="Nenhum local selecionado")
+        self.lbl_escolher_local.pack(pady=5)
+
+        self.btn_baixar_midia = ctk.CTkButton(
+        self.tab_midiaURL,
+        text="Baixar mídia",
+        command=self.baixar_midiaURL
+        )
+        
+        self.btn_baixar_midia.pack(pady=5)
+
+    def escolher_local(self):
+        caminho = ctk.filedialog.askdirectory(
+            title="Selecione o local de salvamento"
+        )
+        if caminho:
+            self.caminho_salvamento = caminho
+            self.lbl_escolher_local.configure(text=caminho)
+
+
+    def baixar_midiaURL(self):
+        if not self.caminho_salvamento:
+            self.popup(mensagem="Erro! Nenhum local para salvamento selecionado...", tempo_ms=2500, cor_fundo="darkred")
+            return
+        caminho_saida = self.caminho_salvamento
+        url = self.entry_midiaURL.get()
+        somente_audio = True if self.switch_somente_audio.get() == 1 else False
+        self.popup(mensagem="Baixando mídia, aguarde..!", tempo_ms=3000)
+        def tarefa():
+            try:
+                baixar_midias(url, caminho_saida, so_audio=somente_audio)
+                self.after(0, lambda: self.popup(mensagem="Mídia baixada com sucesso!!", tempo_ms=3000, cor_fundo="green"))
+            except Exception as e:
+                self.after(0, lambda: self.popup(mensagem=f"Erro na conversão: {e}", tempo_ms=3000, cor_fundo="darkred"))
+        threading.Thread(target=tarefa, daemon=True).start()
+        
+
 
 if __name__ == "__main__":
     app = App()
