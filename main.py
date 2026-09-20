@@ -1,61 +1,108 @@
-from conversores import converter_imagem, converter_midias, baixar_midias, baixar_imagem
+import os
+import sys
+import ctypes
+import traceback
+import webview
 
-print("Seja bem vindo ao....")
-print(r""" ________  ________                                                _    
-|_   __  ||  __   _|                                              / |_  
-  | |_ \_||_/  / /   .---.   .--.   _ .--.  _   __  .---.  _ .--.`| |-' 
-  |  _| _    .'.' _ / /'`\]/ .'`\ \[ `.-. |[ \ [  ]/ /__\\[ `/'`\]| |   
- _| |__/ | _/ /__/ || \__. | \__. | | | | | \ \/ / | \__., | |    | |,  
-|________||________|'.___.' '.__.' [___||__] \__/   '.__.'[___]   \__/  
-                                                                        
-                                                                        """)
-print("""Escolha uma opção para selecionar o que você deseja converter:
-    [1] 🖼️  Conversão de imagens    
-    [2] 🎥 Conversão de mídias (Vídeos, áudios, etc.)
-    [3] 📥  Baixar áudio da web (Link)
-    [4] 📥  Baixar vídeo da web (Link)
-    [5] 📥  Baixar imagem da web (Link)\n""")
+import conversores
 
-while True:
-    try:
-        escolha_menu = int(input("Escolha a sua opção [1], [2], [3], [4] ou [5]...\n"))
-        if escolha_menu in (1,2,3,4,5):
-            break
-        print("Digite apenas alguma das opções fornecidas")
-    except ValueError:
-        print("Digite apenas números inteiros!!!")
-if escolha_menu == 1:
-    print("Vamos converter imagens então..!")
-    caminho_origem = input("Digite o caminho de origem da foto que irá ser usada para a conversão:\n")
-    caminho_destino = input("Agora digite o caminho de onde a imagem convertida irá ficar:\n")
-    converter_imagem(caminho_origem, caminho_destino)
-    print("O arquivo foi convertido com êxito...")
-elif escolha_menu == 2:
-    print("Vamos converter mídias então..!")
-    caminho_origem = input("Digite o caminho da mídia que irá ser convertida:\n")
-    caminho_destino = input("Agora digite o caminho onde a mídia convertida irá ficar:\n")
-    print("Convertendo a mídia desejada, aguarde um momento!")
-    converter_midias(caminho_origem, caminho_destino)
-    print("Conversão concluída com sucesso! Cheque o local onde você escolheu para ficar a conversão!")
-elif escolha_menu == 3:
-    print("Vamos baixar áudios da web utilizando a URL...!")
-    url = input("Cole a URL do áudio:\n")
-    pasta = input("Cole abaixo o caminho onde será salvo o áudio:\n")
-    print("Baixando áudio...")
-    baixar_midias(url, caminho_saida=pasta, so_audio=True)
-    print("Áudio baixado com êxito..!")
-elif escolha_menu == 4:
-    print("Vamos baixar vídeos da web utilizando a URL..!")
-    url = input("Cole a URL do vídeo:\n")
-    pasta = input("Cole abaixo o caminho onde será salvo o vídeo:\n")
-    print("Baixando vídeo. . .")
-    baixar_midias(url, caminho_saida=pasta, so_audio=False)
-    print("Vídeo baixado com sucesso!!")
-elif escolha_menu == 5:
-    print("Ótimo, vamos baixar imagens da web utilizando a URL..!")
-    url = input("Cole a URL da imagem:\n")
-    pasta = input("Cole abaixo o caminho onde será salvo a imagem:\n")
-    print("Baixando imagem. . .")
-    baixar_imagem(url, caminho_saida=pasta)
-    print("Imagem baixada com sucesso!!")
+try:
+    myappid = 'ezconvert.app.1.0'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except Exception:
+    pass
 
+PASTA_PADRAO = os.path.join(os.path.expanduser('~'), 'Downloads')
+
+def _trocar_extensao(caminho_entrada, novo_formato):
+    base = os.path.splitext(caminho_entrada)[0]
+    return f'{base}_convertido.{novo_formato.lower()}'
+
+class Api:
+    def __init__(self):
+        self._window = None
+
+    def set_window(self, window):
+        self._window = window
+
+    def selecionar_arquivo(self, tipo):
+        if tipo == 'imagem':
+            file_types = ('Imagens (*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif;*.tiff;*.ico)', 'Todos os arquivos (*.*)')
+        else:
+            file_types = ('Mídias (*.mp4;*.mkv;*.avi;*.mov;*.webm;*.mp3;*.wav;*.flac;*.aac;*.ogg)', 'Todos os arquivos (*.*)')
+
+        result = self._window.create_file_dialog(
+            webview.OPEN_DIALOG,
+            allow_multiple=False,
+            file_types=file_types
+        )
+        return result[0] if result else None
+
+    def selecionar_pasta(self):
+        result = self._window.create_file_dialog(webview.FOLDER_DIALOG)
+        return result[0] if result else None
+
+    def caminho_padrao(self):
+        return PASTA_PADRAO
+
+    def converter_imagem_ui(self, caminho_entrada, formato):
+        try:
+            if not caminho_entrada or not os.path.isfile(caminho_entrada):
+                return {'ok': False, 'erro': 'Arquivo de origem não encontrado.'}
+            caminho_saida = _trocar_extensao(caminho_entrada, formato)
+            conversores.converter_imagem(caminho_entrada, caminho_saida)
+            return {'ok': True, 'saida': caminho_saida}
+        except Exception as e:
+            traceback.print_exc()
+            return {'ok': False, 'erro': str(e)}
+
+    def converter_midia_ui(self, caminho_entrada, formato):
+        try:
+            if not caminho_entrada or not os.path.isfile(caminho_entrada):
+                return {'ok': False, 'erro': 'Arquivo de origem não encontrado.'}
+            caminho_saida = _trocar_extensao(caminho_entrada, formato)
+            conversores.converter_midias(caminho_entrada, caminho_saida)
+            if not os.path.isfile(caminho_saida):
+                return {'ok': False, 'erro': 'A conversão falhou. Verifique se o ffmpeg está instalado.'}
+            return {'ok': True, 'saida': caminho_saida}
+        except Exception as e:
+            traceback.print_exc()
+            return {'ok': False, 'erro': str(e)}
+
+    def baixar_midia_ui(self, url, pasta, so_audio):
+        try:
+            if not url:
+                return {'ok': False, 'erro': 'Informe uma URL válida.'}
+            pasta_destino = pasta or PASTA_PADRAO
+            os.makedirs(pasta_destino, exist_ok=True)
+            conversores.baixar_midias(url, pasta_destino, so_audio)
+            return {'ok': True, 'pasta': pasta_destino}
+        except Exception as e:
+            traceback.print_exc()
+            return {'ok': False, 'erro': str(e)}
+
+def _obter_caminho_base():
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.abspath(__file__))
+
+if __name__ == '__main__':
+    api = Api()
+    base_path = _obter_caminho_base()
+    html_file = os.path.join(base_path, 'web', 'index.html')
+    icon_file = os.path.join(base_path, 'web', 'assets', 'icons', 'iconv3v.ico')
+
+    if not os.path.exists(icon_file):
+        icon_file = None
+
+    window = webview.create_window(
+        'EZconvert',
+        html_file,
+        js_api=api,
+        width=1000,
+        height=700,
+        resizable=True
+    )
+    api.set_window(window)
+
+    webview.start(icon=icon_file)

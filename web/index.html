@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EZconvert</title>
+
+  <link rel="icon" type="image/x-icon" href="assets/icons/iconv3v.ico">
+  <link rel="shortcut icon" href="assets/icons/iconv3v.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.028 0.055" numOctaves="1" seed="13" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  <div class="scene" aria-hidden="true">
+    <span class="scene-orb scene-orb-a"></span>
+    <span class="scene-orb scene-orb-b"></span>
+    <span class="scene-orb scene-orb-c"></span>
+    <span class="scene-shine"></span>
+  </div>
+
+  <div class="app">
+    <main class="content">
+      <header class="topbar">
+        <button class="brand" id="brandHome" type="button" aria-label="Início">
+          <span class="brand-name" data-label="EZconvert">EZconvert</span>
+        </button>
+      </header>
+
+      <section class="screen active home-screen" id="screen-inicio">
+        <div class="home-grid">
+          <button class="tool tool-image" data-goto="imagem" type="button" aria-label="Abrir conversor de imagem">
+            <span class="tool-icon"><img src="assets/icons/nav/image.png" alt=""></span>
+            <span class="tool-content"><strong>Imagem</strong><small>PNG · JPG · WEBP · PDF · ICO +1</small></span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="tool tool-media" data-goto="midia" type="button" aria-label="Abrir conversor de mídia">
+            <span class="tool-icon"><img src="assets/icons/nav/media.png" alt=""></span>
+            <span class="tool-content"><strong>Mídia</strong><small>MP4 · MP3 · MKV · WAV +9</small></span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="tool tool-download" data-goto="download" type="button" aria-label="Abrir downloader web">
+            <span class="tool-icon"><img src="assets/icons/nav/download.png" alt=""></span>
+            <span class="tool-content"><strong>Download</strong><small>Vídeo · Áudio · URL</small></span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-imagem">
+        <div class="panel">
+          <div class="heading"><span>IMAGEM</span><h1>Converta seu arquivo.</h1></div>
+          <div class="dropzone" id="dropImagem">
+            <span class="drop-icon">↑</span>
+            <p id="imagemNomeArquivo">Arraste uma imagem aqui ou clique para selecionar</p>
+          </div>
+          <div class="field-row">
+            <label class="field-label">Converter para</label>
+            <div class="pill-group" id="formatoImagem" data-selected="png">
+                <button class="pill" data-value="png" type="button">PNG</button>
+                <button class="pill" data-value="jpg" type="button">JPG</button>
+                <button class="pill" data-value="webp" type="button">WEBP</button>
+                <button class="pill" data-value="tiff" type="button">TIFF</button>
+                <button class="pill" data-value="pdf" type="button">PDF</button>
+                <button class="pill" data-value="bmp" type="button">BMP</button>
+                <button class="pill" data-value="ico" type="button">ICO</button>
+                <button class="pill" data-value="gif" type="button">GIF</button>
+            </div>
+          </div>
+          <button class="action-btn" id="btnConverterImagem" type="button" disabled>Converter imagem</button>
+          <p class="status-line" id="statusImagem" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-midia">
+        <div class="panel">
+          <div class="heading"><span>MÍDIA</span><h1>Transforme áudio ou vídeo.</h1></div>
+          <div class="dropzone" id="dropMidia">
+            <span class="drop-icon">↑</span>
+            <p id="midiaNomeArquivo">Arraste um vídeo ou áudio aqui ou clique para selecionar</p>
+          </div>
+          <div class="field-row">
+            <label class="field-label">Converter para</label>
+          <div class="pill-group" id="formatoMidia" data-selected="mp4">
+                <button class="pill" data-value="mp4" type="button">MP4</button>
+                <button class="pill" data-value="mov" type="button">MOV</button>
+                <button class="pill" data-value="webm" type="button">WEBM</button>
+                <button class="pill" data-value="avi" type="button">AVI</button>
+                <button class="pill" data-value="asf" type="button">ASF</button>
+                <button class="pill" data-value="mkv" type="button">MKV</button>
+                <button class="pill" data-value="wmv" type="button">WMV</button>
+                <button class="pill" data-value="flv" type="button">FLV</button>
+                <button class="pill" data-value="mp3" type="button">MP3</button>
+                <button class="pill" data-value="ogg" type="button">OGG</button>
+                <button class="pill" data-value="wav" type="button">WAV</button>
+                <button class="pill" data-value="m4a" type="button">M4A</button>
+                <button class="pill" data-value="flac" type="button">FLAC</button>
+                <button class="pill" data-value="aiff" type="button">AIFF</button>
+          </div>
+          </div>
+          <button class="action-btn" id="btnConverterMidia" type="button" disabled>Converter mídia</button>
+          <p class="status-line" id="statusMidia" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-download">
+        <div class="panel panel-download">
+          <div class="heading"><span>WEB</span><h1>Traga mídia da web.</h1></div>
+          <div class="field-col">
+            <label class="field-label" for="urlDownload">URL do vídeo</label>
+            <input class="glass-input" id="urlDownload" type="url" inputmode="url" placeholder="https://..." autocomplete="url" spellcheck="false">
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-text"><span class="field-label">Somente áudio</span><span class="field-desc">Salva como MP3 em vez de vídeo</span></div>
+            <button class="liquid-toggle" id="toggleAudio" type="button" role="switch" aria-checked="false"><span class="liquid-toggle-knob"></span></button>
+          </div>
+          <div class="field-col">
+            <label class="field-label">Pasta de destino</label>
+            <button class="folder-btn" id="btnPasta" type="button"><span class="folder-mark">＋</span><span id="pastaTexto">Pasta padrão (Downloads)</span></button>
+          </div>
+          <button class="action-btn" id="btnBaixar" type="button">Baixar</button>
+          <p class="status-line" id="statusDownload" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+
+    <nav class="action-bar" id="actionBar" aria-label="Ferramentas">
+      <div class="nav-pointer" aria-hidden="true"></div>
+      <button class="nav-button selected" data-screen="inicio" type="button" aria-label="Início" aria-current="page"><span class="nav-home">EZ</span></button>
+      <button class="nav-button" data-screen="imagem" type="button" aria-label="Imagem"><img src="assets/icons/nav/image.png" alt=""></button>
+      <button class="nav-button" data-screen="midia" type="button" aria-label="Mídia"><img src="assets/icons/nav/media.png" alt=""></button>
+      <button class="nav-button" data-screen="download" type="button" aria-label="Download"><img src="assets/icons/nav/download.png" alt=""></button>
+    </nav>
+  </div>
+
+  <script src="/eel.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+build/
+dist/
+*.spec
+*.exe
+__pycache__/
+venv/
+.vscode/
+
+!ffmpeg.exe
