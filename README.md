@@ -26,7 +26,7 @@ O arquivo é totalmente seguro e o código-fonte está disponível nesta página
 
 ## Como executar a partir do código-fonte (Para programadores)
 
-Se quiser adaptar o projeto, contribuir ou simplesmente correr a aplicação localmente:
+Se quiser adaptar o projeto, contribuir ou simplesmente rodar o programa localmente:
 
 1. Clone o repositório:
    git clone https://github.com/josielmiqueias/EZconvert.git
