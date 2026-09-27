@@ -3,6 +3,9 @@ import yt_dlp
 import os
 import requests
 import sys
+import mimetypes
+from datetime import datetime
+from urllib.parse import urlparse
 from PIL import Image
 from io import BytesIO
 
@@ -72,10 +75,38 @@ def baixar_midias(url, caminho_saida=".", so_audio=False):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
 
-def baixar_imagem(url, caminho_saida):
-    resposta = requests.get(url)
+import os
+import requests
+from io import BytesIO
+from PIL import Image
+from datetime import datetime
+
+def baixar_imagem(url, pasta_destino="."):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+
+    resposta = requests.get(url, headers=headers, timeout=15)
     resposta.raise_for_status()
     imagem = Image.open(BytesIO(resposta.content))
-    if caminho_saida.lower().endswith(('.jpg', '.jpeg')) and imagem.mode in ('RGBA', 'LA'):
-        imagem = imagem.convert('RGB')
-    imagem.save(caminho_saida)
+    formato = (imagem.format or 'jpeg').lower()
+    
+    extensoes = {
+        'jpeg': '.jpg',
+        'png': '.png',
+        'webp': '.webp',
+        'gif': '.gif',
+        'bmp': '.bmp'
+    }
+    extensao = extensoes.get(formato, '.jpg')
+    
+    nome_arquivo = f"imagem_{datetime.now().strftime('%Y%m%d_%H%M%S')}{extensao}"
+    caminho_completo = os.path.join(pasta_destino, nome_arquivo)
+    
+    if extensao in ('.jpg', '.jpeg') and imagem.mode in ('RGBA', 'LA', 'P'):
+        fundo_branco = Image.new('RGB', imagem.size, (255, 255, 255))
+        fundo_branco.paste(imagem, mask=imagem.split()[-1] if imagem.mode == 'RGBA' else None)
+        imagem = fundo_branco
+
+    imagem.save(caminho_completo)
+    return caminho_completo

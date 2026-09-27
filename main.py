@@ -56,27 +56,19 @@ class Api:
             traceback.print_exc()
             return {'ok': False, 'erro': str(e)}
 
-    def converter_midia_ui(self, caminho_entrada, formato):
-        try:
-            if not caminho_entrada or not os.path.isfile(caminho_entrada):
-                return {'ok': False, 'erro': 'Arquivo de origem não encontrado.'}
-            caminho_saida = _trocar_extensao(caminho_entrada, formato)
-            conversores.converter_midias(caminho_entrada, caminho_saida)
-            if not os.path.isfile(caminho_saida):
-                return {'ok': False, 'erro': 'A conversão falhou. Verifique se o ffmpeg está instalado.'}
-            return {'ok': True, 'saida': caminho_saida}
-        except Exception as e:
-            traceback.print_exc()
-            return {'ok': False, 'erro': str(e)}
-
     def baixar_midia_ui(self, url, pasta, so_audio):
         try:
             if not url:
                 return {'ok': False, 'erro': 'Informe uma URL válida.'}
             pasta_destino = pasta or PASTA_PADRAO
             os.makedirs(pasta_destino, exist_ok=True)
-            conversores.baixar_midias(url, pasta_destino, so_audio)
-            return {'ok': True, 'pasta': pasta_destino}
+            try:
+                caminho_saida = conversores.baixar_imagem(url, pasta_destino)
+                return {'ok': True, 'pasta': pasta_destino, 'arquivo': caminho_saida}
+            except Exception:
+                conversores.baixar_midias(url, pasta_destino, so_audio)
+                return {'ok': True, 'pasta': pasta_destino}
+
         except Exception as e:
             traceback.print_exc()
             return {'ok': False, 'erro': str(e)}
