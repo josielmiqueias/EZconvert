@@ -4,6 +4,8 @@ import os
 import requests
 import sys
 import mimetypes
+import time as te
+import threading
 from datetime import datetime
 from urllib.parse import urlparse
 from PIL import Image
@@ -24,6 +26,7 @@ def _obter_caminho_ffmpeg():
 FFMPEG_PATH = _obter_caminho_ffmpeg()
 
 def converter_imagem(caminho_entrada, caminho_saida):
+
     img = Image.open(caminho_entrada)
     extensao_destino = caminho_saida.split('.')[-1].lower()
     
@@ -44,7 +47,7 @@ def converter_imagem(caminho_entrada, caminho_saida):
 
 def converter_midias(caminho_entrada, caminho_saida):
     comando = [FFMPEG_PATH, "-loglevel", "quiet", "-y", "-i", caminho_entrada, caminho_saida]
-    subprocess.run(comando)
+    subprocess.run(comando, check=True)
 
 def baixar_midias(url, caminho_saida=".", so_audio=False):
     modelo_saida = os.path.join(caminho_saida, '%(title)s.%(ext)s')
@@ -75,12 +78,6 @@ def baixar_midias(url, caminho_saida=".", so_audio=False):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
 
-import os
-import requests
-from io import BytesIO
-from PIL import Image
-from datetime import datetime
-
 def baixar_imagem(url, pasta_destino="."):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -110,3 +107,25 @@ def baixar_imagem(url, pasta_destino="."):
 
     imagem.save(caminho_completo)
     return caminho_completo
+
+# animacaozinha pra eu fazer lá no terminal
+animacaoC = {"rodando": False, "thread": None}
+def animacao():
+    print("Convertendo", end="", flush=True)
+    while animacaoC["rodando"]:
+        te.sleep(0.67)
+        print(".", end="", flush=True)
+        sys.stdout.flush()
+def iniciar_animacao():
+    if animacaoC["thread"] and animacaoC["thread"].is_alive():
+        return
+    animacaoC["rodando"] = True
+    t = threading.Thread(target=animacao)
+    t.daemon = True
+    t.start()
+    animacaoC["thread"] = t
+def parar_animacao():
+    animacaoC["rodando"] = False
+    if animacaoC["thread"]:
+        animacaoC["thread"].join(timeout=1.0)
+    print()

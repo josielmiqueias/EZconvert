@@ -1,5 +1,9 @@
-from conversores import baixar_imagem, baixar_midias, converter_imagem, converter_midias
-import sleep
+from conversores import baixar_imagem, baixar_midias, converter_imagem, converter_midias, iniciar_animacao, parar_animacao
+import time
+import os
+import subprocess
+import yt_dlp
+import requests
 
 while True:
     try:
@@ -26,57 +30,187 @@ while True:
             if escolhamenu ==1:
                 caminhoentradaimg = input(r"Digite o caminho da imagem. Exemplo: 'C:\Users\seu_usuario\pasta\foto.extensão'." "\n")
                 caminhosaidaimg = input("Digite o caminho onde a imagem imagem será salva.\n"r"Exemplo: 'C:\Users\seu_usuario\pasta\fotoconvertida.extensãodesejada'." "\n")
-                while True:
+                t = iniciar_animacao()
+                erro = False
+                try:
+                    converter_imagem(caminho_entrada=caminhoentradaimg, caminho_saida=caminhosaidaimg)
+                    time.sleep(2)
+                    erro = False
+                except(OSError):
+                    parar_animacao()
+                    print("\nErro! Tente digitar os caminhos sem aspas apenas o texto comum:")
+                        
+                    caminhoentradaimg = input("Digite o caminho da imagem.\n")
+                    caminhosaidaimg = input("Digite o caminho onde a imagem imagem será salva.\n")
+                        
+                    t = iniciar_animacao()
                     try:
                         converter_imagem(caminho_entrada=caminhoentradaimg, caminho_saida=caminhosaidaimg)
-                    except(OSError):
-                        print("Erro! Tente digitar os caminhos sem aspas apenas o texto comum:")
-                        caminhoentradaimg = input("Digite o caminho da imagem.\n")
-                        caminhosaidaimg = input("Digite o caminho onde a imagem imagem será salva.\n")
-                        converter_imagem(caminho_entrada=caminhoentradaimg, caminho_saida=caminhosaidaimg)
+                    except Exception as e:
+                        parar_animacao()
+                        print(f"Erro, o sistema deu erro novamente (Erro de {e}.)")
+                        erro = True
+                except Exception as e:
+                    parar_animacao()
+                    print(f"Erro! O programa deu erro por causa de(o) {e}")
+                    time.sleep(1.67)
+                    erro = True
+                finally:
+                    parar_animacao()
+                if not erro:
+                    print("\nImagem Convertida com sucesso!\n")
+                else:
+                    print("\nErro ao converter!")
+                    
+            
             elif escolhamenu ==2:
                 caminhoentradamidia = input(r"Digite o caminho da mídia. Exemplo: 'C:\Users\Usuario\pasta\midia.extensão'." "\n")
                 caminhosaidamidia = input("Digite o caminho onde a mídia será salva.\n"r"Exemplo: 'C:\Users\Usuario\pasta\midia.extensãodesejada'." "\n")
-                while True:
+                t = iniciar_animacao()
+                try:
+                    converter_midias(caminho_entrada=caminhoentradamidia, caminho_saida=caminhosaidamidia)
+                except subprocess.CalledProcessError:
+                    parar_animacao()
+                    print("Erro! Tente digitar os caminhos sem aspas apenas o texto comum:")
+                    
+                    caminhoentradamidia = input("Digite o caminho da mídia.\n")
+                    caminhosaidamidia = input("Digite o caminho onde a mídia será salva.\n")
+                    t = iniciar_animacao()
                     try:
                         converter_midias(caminho_entrada=caminhoentradamidia, caminho_saida=caminhosaidamidia)
-                    except(OSError):
-                        print("Erro! Tente digitar os caminhos sem aspas apenas o texto comum:")
-                        caminhoentradamidia = input("Digite o caminho da mídia.\n")
-                        caminhosaidamidia = input("Digite o caminho onde a mídia será salva.\n")
-                        converter_midias(caminho_entrada=caminhoentradamidia, caminho_saida=caminhosaidamidia)
+                    except Exception as e:
+                        parar_animacao()
+                        print(f"O sistema falhou novamente por causa de um erro de {e}")
+                        time.sleep(2.33)
+                except Exception as e:
+                    parar_animacao()
+                    print(f"Erro! ({e}.)")
+                finally:
+                    parar_animacao()
+                    print(
+                          "A conversão foi concluída com sucesso"
+                          f" no diretório ({caminhoentradamidia})."
+                        )
 
             elif escolhamenu ==3:
                 urlmidia = input("Digite a url da mídia para ser baixada:\n")
-                caminhomidiabaixada = input("Digite o caminho onde a mídia será salva.\n"r"Exemplo: 'C:\Users\Usuario\pasta\midia.extensãodesejada'." "\n")
+                caminhomidiabaixada = input("Digite o caminho onde a mídia será salva.\n"r"Exemplo: 'C:\Users\Usuario\pasta\nomedamidia'." "\n")
                 print("Se você quiser a mídia só com áudio então digite 1, se quiser com o áudio e vídeo digite 0:\n")
-                soaudio = int(input())
+                soaudio = None
                 while soaudio not in (1, 0):
                     try:
                         soaudio = int(input("Digite apenas opções válidas (1 ou 0)\n"))
                     except(ValueError):
                         print("Apenas digite números, evite digitar outras coisas sem ser alguma das opções válidas.")
-                        soaudio = int(input())
                 if soaudio == 1:
-                    self.so_audio=True
+                    soaudio=True
                 else:
-                    self.so_audio=False
-                baixar_midias(url=urlmidia, caminhomidiabaixada=caminhomidiabaixada, so_audio=self.so_audio)
+                    soaudio=False
+                try:
+                    baixar_midias(url=urlmidia, caminho_saida=caminhomidiabaixada, so_audio=soaudio)
+                except yt_dlp.utils.DownloadError as e:
+                    print(f"Erro, não foi possível baixar a mídia por causa de(o) {e}")
+                    tt_nv=input("Deseja tentar novamente? (s/n):   ")
+                    if tt_nv.lower() == "s":
+                        print("Deseja colocar um novo caminho? (s/n):   ")
+                        nv_caminho = input()
+                        if nv_caminho.lower() == "s":
+                            urlmidia = input("Digite a nova URL: ").strip()
+                            print("Digite o caminho onde a mídia será salva: ")
+                            caminhomidiabaixada = input().strip()
+                            deu_erro=False
+                            erro = None
+                            try:
+                                baixar_midias(url=urlmidia, caminho_saida=caminhomidiabaixada, so_audio=soaudio)
+                                deu_erro = False
+                            except Exception as e:
+                                erro = e
+                                deu_erro = True
+                            finally:
+                                if deu_erro:
+                                    print(f"O programa falhou novamente! {erro}")
+                                    time.sleep(5)
+                                if not deu_erro:
+                                    print("O sistema baixou a mídia com sucesso")
+                        else:
+                            erro = None
+                            deu_erro = False
+                            try:
+                                baixar_midias(url=urlmidia, caminho_saida=caminhomidiabaixada, so_audio=soaudio)
+                                deu_erro = False
+                            except Exception as e:
+                                erro = e
+                                deu_erro = True
+                            finally:
+                                if deu_erro:
+                                    print(f"O programa falhou novamente! {erro}")
+                                    time.sleep(5)
+                                if not deu_erro:
+                                    print("O sistema baixou a mídia com sucesso")
+                        
             else:
                 urlimagem = input("Digite a url da imagem para ser baixada:\n")
                 caminhoimagembaixada = input("Digite o caminho onde a imagem será salva.\n"r"Exemplo: 'C:\Users\Usuario\pasta\imagem.extensãodesejada'." "\n")
-                baixar_imagem(url=urlimagem, pasta_destino=caminhoimagembaixada)
+                try:
+                    baixar_imagem(url=urlimagem, pasta_destino=caminhoimagembaixada)
+                except requests.RequestException as e:
+                    print(f"Erro ao baixar a imagem! ({e})")
+                    print("Deseja tentar novamente? (s/n):   ")
+                    tt_nv=input()
+                    if tt_nv.lower() == "s":
+                        print("Deseja colocar um novo caminho? (s/n):   ")
+                        nv_caminho = input()
+                        if nv_caminho.lower() == "s":
+                            urlimagem = input("Digite a nova URL: ").strip()
+                            print("Digite o caminho onde a imagem será salva: ")
+                            caminhoimagembaixada = input().strip()
+                            deu_erro=False
+                            erro = None
+                            try:
+                                baixar_imagem(url=urlimagem, pasta_destino=caminhoimagembaixada)
+                                deu_erro = False
+                            except Exception as e:
+                                erro = e
+                                deu_erro = True
+                            finally:
+                                if deu_erro:
+                                    print(f"O programa falhou novamente! {erro}")
+                                    time.sleep(5)
+                                if not deu_erro:
+                                    print("O sistema baixou a imagem com sucesso")
+                        else:
+                            erro = None
+                            deu_erro = False
+                            try:
+                                baixar_imagem(url=urlimagem, pasta_destino=caminhoimagembaixada)
+                                deu_erro = False
+                            except Exception as e:
+                                erro = e
+                                deu_erro = True
+                            finally:
+                                if deu_erro:
+                                    print(f"O programa falhou novamente! {erro}")
+                                    time.sleep(5)
+                                if not deu_erro:
+                                    print("O sistema baixou a imagem com sucesso")
 
-            print("\nObrigado por usar o programa! Se te ajudou não se esqueça de deixar uma estrelinha!\n")
+            # pá ficar bunitin kkkkk
+            time.sleep(2.67)
+            os.system('cls' if os.name == 'nt' else 'clear')
+
+            print("Obrigado por usar o programa! Se te ajudou não se esqueça de deixar uma estrelinha!\n")
             print("Deseja fazer uma nova conversão? Digite 1, caso queira sair, digite 0.")
-            repetir = int(input())
+            repetir = None
             while repetir not in (1, 0):
                 try:
-                    print("Erro! Apenas digite opções válidas.")
                     repetir = int(input())
+                    while repetir not in (1, 0):
+                        print("Digite apenas uma das opções válidas (0 para sair ou 1 para continuar)")
+                        repetir = int(input())
                 except(ValueError):
                     print("Erro, apenas digite números (1 ou 0)")
-                    repetir = int(input())
+                except Exception as e:
+                    print(f"O sistema falhou, (erro: {e}.)")
             if repetir ==0:
                 print("Encerrando, até a próxima!")
                 break
