@@ -7,5 +7,4 @@ venv/
 .vscode/
 *.pyc
 
-style.css
 !ffmpeg.exe

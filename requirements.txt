@@ -1,0 +1,4 @@
+Pillow==12.3.0
+pywebview==6.2.1
+Requests==2.34.2
+yt_dlp==2026.8.19
